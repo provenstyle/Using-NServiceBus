@@ -1,3 +1,7 @@
+using NLog;
+using NLog.Config;
+using NLog.Targets;
+
 namespace Host
 {
     using NServiceBus;
@@ -10,15 +14,19 @@ namespace Host
     {
         public void Customize(BusConfiguration configuration)
         {
-            // NServiceBus provides the following durable storage options
-            // To use RavenDB, install-package NServiceBus.RavenDB and then use configuration.UsePersistence<RavenDBPersistence>();
-            // To use SQLServer, install-package NServiceBus.NHibernate and then use configuration.UsePersistence<NHibernatePersistence>();
-            
-            // If you don't need a durable storage you can also use, configuration.UsePersistence<InMemoryPersistence>();
-            // more details on persistence can be found here: http://docs.particular.net/nservicebus/persistence-in-nservicebus
-            
-            //Also note that you can mix and match storages to fit you specific needs. 
-            //http://docs.particular.net/nservicebus/persistence-order
+            //Configure Logging
+            var config = new LoggingConfiguration();
+            var consoleTarget = new ColoredConsoleTarget
+            {
+                Layout = "Foo: ${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}"
+            };
+            config.AddTarget("console", consoleTarget);
+            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
+            LogManager.Configuration = config;
+
+            NServiceBus.Logging.LogManager.Use<NLogFactory>();
+
+            //Configure NServiceBus
             configuration.UsePersistence<NHibernatePersistence>();
             configuration.EndpointName("fooQueue");
             configuration.UseSerialization<JsonSerializer>();
