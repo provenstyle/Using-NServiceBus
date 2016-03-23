@@ -6,7 +6,7 @@ namespace Host
 		This class configures this endpoint as a Server. More information about how to configure the NServiceBus host
 		can be found here: http://particular.net/articles/the-nservicebus-host
 	*/
-    public class EndpointConfig : IConfigureThisEndpoint
+    public class EndpointConfig : IConfigureThisEndpoint, AsA_Server
     {
         public void Customize(BusConfiguration configuration)
         {
@@ -20,6 +20,8 @@ namespace Host
             //Also note that you can mix and match storages to fit you specific needs. 
             //http://docs.particular.net/nservicebus/persistence-order
             configuration.UsePersistence<NHibernatePersistence>();
+            configuration.EndpointName("fooQueue");
+            configuration.UseSerialization<JsonSerializer>();
         }
     }
 }
