@@ -1,3 +1,5 @@
+using Castle.Facilities.Logging;
+using Castle.Windsor;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
@@ -15,16 +17,13 @@ namespace Host
         public void Customize(BusConfiguration configuration)
         {
             //Configure Logging
-            var config = new LoggingConfiguration();
-            var consoleTarget = new ColoredConsoleTarget
-            {
-                Layout = "Foo: ${level}|${logger}|${message}${onexception:${newline}${exception:format=tostring}}"
-            };
-            config.AddTarget("console", consoleTarget);
-            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Info, consoleTarget));
-            LogManager.Configuration = config;
-
+            GlobalDiagnosticsContext.Set("ApplicationName", "NServiceBusEvaluation");
             NServiceBus.Logging.LogManager.Use<NLogFactory>();
+
+            //Configure Castle Container
+            var container = new WindsorContainer();
+            container.AddFacility<LoggingFacility>(x => x.UseNLog());
+            configuration.UseContainer<WindsorBuilder>(x => x.ExistingContainer(container));
 
             //Configure NServiceBus
             configuration.UsePersistence<NHibernatePersistence>();
